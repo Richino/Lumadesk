@@ -1,23 +1,527 @@
-import React, {useState} from 'react';
-import {createRoot} from 'react-dom/client';
-import {motion, AnimatePresence} from 'framer-motion';
-import {ArrowUpRight, Menu, X, ShoppingBag, Check, Minus, Plus, Star, ArrowRight, Play, ChevronDown} from 'lucide-react';
-import './styles.css';
+import React, { useEffect, useState } from "react";
+import { createRoot } from "react-dom/client";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowUpRight,
+  Menu,
+  X,
+  ShoppingBag,
+  Check,
+  Minus,
+  Plus,
+  Star,
+  ArrowRight,
+  Play,
+  ChevronDown,
+} from "lucide-react";
+import "./styles.css";
 
-const desk = '/images/lumadesk-product-master.png';
+const desk = "/images/lumadesk-product-master.png";
 // Canonical LumaDesk product image supplied by the brand. Future finish variants
 // must be direct edits of this locked composition, never a recreated scene.
-const deskSilver = '/images/lumadesk-hero-silver.png';
-const features=[['01','Quietly powerful','Twin motors rise in near silence — 38dB at full speed.'],['02','Built to outlast','Solid white oak. Precision-milled aluminum. A desk made for decades.'],['03','Knows your rhythm','Four programmable heights remember exactly where you do your best work.']];
-const reviews=[['“The one piece in my office that makes every other decision feel better.”','Maya R.','Brooklyn, NY'],['“Beautifully quiet, absurdly solid. It changed my posture — and my afternoons.”','Elliot S.','San Francisco, CA'],['“It has the restraint of a great tool. Nothing extra, everything considered.”','Nora K.','Chicago, IL']];
-function App(){const [cart,setCart]=useState(false),[menu,setMenu]=useState(false),[qty,setQty]=useState(1),[added,setAdded]=useState(false),[frame,setFrame]=useState('black'); const add=()=>{setAdded(true);setCart(true)}; return <><header><a className="brand" href="#top">Luma<span>Desk</span></a><nav><a href="#design">Design</a><a href="#specs">Specifications</a><a href="#stories">Stories</a><a href="#support">Support</a></nav><button className="bag" onClick={()=>setCart(true)} aria-label="Open cart"><ShoppingBag size={18}/>{added&&<i/>}</button><button className="menub" onClick={()=>setMenu(!menu)} aria-label="Open menu">{menu?<X/>:<Menu/>}</button></header><AnimatePresence>{menu&&<motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="mobile-nav"><a href="#design">Design</a><a href="#specs">Specifications</a><a href="#stories">Stories</a><button onClick={add}>Shop LumaDesk Pro</button></motion.div>}</AnimatePresence>
-<main id="top"><section className="hero"><div className="hero-copy"><p className="eyebrow">THE NEW LUMADESK PRO <b>•</b> 2026</p><h1>Elevate your work.<br/><em>Transform your life.</em></h1><p className="lede">A standing desk crafted with an uncompromising belief: the objects you work with should make you feel more capable.</p><div className="hero-actions"><button className="primary" onClick={add}>Shop LumaDesk Pro <ArrowUpRight size={17}/></button><button className="text-btn"><span><Play size={12} fill="currentColor"/></span> Watch the film</button></div></div><div className="hero-art"><img src={desk} alt="LumaDesk Pro oak standing desk in a quiet modern workspace"/><div className="hero-note">Natural white oak<br/><b>From $1,895</b></div></div><div className="scroll">SCROLL TO EXPLORE <span>↓</span></div></section>
-<section className="manifesto" id="design"><p className="eyebrow">MORE THAN A DESK</p><h2>Your best work deserves<br/>a better place to happen.</h2><p>Designed in Copenhagen and engineered in California, LumaDesk Pro is the quiet center of a more intentional workday.</p></section>
-<section className="feature-wrap">{features.map(([n,t,d])=><article className="feature" key={n}><span>{n}</span><div><h3>{t}</h3><p>{d}</p><a href="#specs">Explore the details <ArrowRight size={15}/></a></div></article>)}</section>
-<section className="image-break"><img src={desk} alt="Close view of the LumaDesk Pro"/><div><p className="eyebrow">MADE TO MOVE</p><h2>Movement,<br/><em>made effortless.</em></h2><p>The LumaDrive™ system brings an unusually smooth, considered experience to every transition. From sitting to standing in 9 seconds flat.</p><button className="text-btn">Discover LumaDrive <ArrowUpRight size={16}/></button></div></section>
-<section className="specs" id="specs"><div><p className="eyebrow">ENGINEERING, REFINED</p><h2>Considered<br/>from every angle.</h2></div><div className="spec-grid"><div><b>01</b><span>Height range</span><strong>24.5 — 50.2 in</strong></div><div><b>02</b><span>Load capacity</span><strong>350 lb</strong></div><div><b>03</b><span>Rise speed</span><strong>1.7 in / sec</strong></div><div><b>04</b><span>Warranty</span><strong>5 years</strong></div></div></section>
-<section className="product"><div className="product-img"><img key={frame} className="product-photo" src={frame === 'black' ? desk : deskSilver} alt={`LumaDesk Pro in white oak with ${frame} frame`}/><span>WHITE OAK / {frame.toUpperCase()}</span></div><div className="product-info"><p className="eyebrow">THE FLAGSHIP</p><h2>LumaDesk Pro</h2><p className="price">From $1,895</p><p>Made-to-order, delivered in 2–3 weeks. Complimentary white-glove delivery in the continental US.</p><div className="selectors"><div><label>Desktop finish</label><button className="choice"><i/> Natural white oak <ChevronDown size={16}/></button></div><div><label>Frame</label><div className="dots" role="radiogroup" aria-label="Frame color"><button className={`black ${frame === 'black' ? 'active' : ''}`} onClick={()=>setFrame('black')} aria-label="Black frame" role="radio" aria-checked={frame === 'black'}/><button className={`silver ${frame === 'silver' ? 'active' : ''}`} onClick={()=>setFrame('silver')} aria-label="Silver frame" role="radio" aria-checked={frame === 'silver'}/></div></div></div><div className="buy"><div><button onClick={()=>setQty(Math.max(1,qty-1))}><Minus size={15}/></button><span>{qty}</span><button onClick={()=>setQty(qty+1)}><Plus size={15}/></button></div><button className="primary" onClick={add}>Add to bag — ${1895*qty}</button></div><small><Check size={14}/> Ships free · 30-day home trial</small></div></section>
-<section className="quotes" id="stories"><p className="eyebrow">IN THEIR WORDS</p><h2>Work, elevated.</h2><div>{reviews.map((r,i)=><article key={i}><div className="stars">★★★★★</div><blockquote>{r[0]}</blockquote><p><b>{r[1]}</b><br/>{r[2]}</p></article>)}</div></section>
-<section className="newsletter" id="support"><p className="eyebrow">STAY IN THE LOOP</p><h2>For a more<br/><em>intentional workday.</em></h2><form onSubmit={e=>e.preventDefault()}><input placeholder="Your email address" type="email" aria-label="Email address"/><button aria-label="Subscribe"><ArrowRight size={20}/></button></form><small>New product notes, studio visits, and considered ideas. No noise.</small></section></main>
-<footer><a className="brand">Luma<span>Desk</span></a><p>Work, elevated.</p><div><a>Instagram</a><a>Contact</a><a>Shipping & Returns</a><a>Privacy</a></div><small>© 2026 LumaDesk, Inc.</small></footer>
-<AnimatePresence>{cart&&<motion.aside initial={{x:'100%'}} animate={{x:0}} exit={{x:'100%'}} transition={{type:'tween',duration:.35}} className="cart"><div className="cart-head"><h2>Your bag</h2><button onClick={()=>setCart(false)} aria-label="Close cart"><X/></button></div>{added?<><div className="cart-item"><img src={desk}/><div><b>LumaDesk Pro</b><p>Natural white oak / Black</p><strong>${1895*qty}</strong></div></div><div className="cart-bottom"><div><span>Subtotal</span><b>${1895*qty}</b></div><p>Complimentary delivery included</p><button className="primary">Continue to checkout <ArrowRight size={16}/></button></div></>:<div className="empty"><ShoppingBag size={30}/><p>Your bag is waiting for something exceptional.</p><button onClick={()=>setCart(false)} className="text-btn">Continue browsing</button></div>}</motion.aside>}</AnimatePresence></>};createRoot(document.getElementById('root')).render(<App/>);
+const deskSilver = "/images/lumadesk-hero-silver.png";
+const features = [
+  [
+    "01",
+    "Quietly powerful",
+    "Twin motors rise in near silence — 38dB at full speed.",
+  ],
+  [
+    "02",
+    "Built to outlast",
+    "Solid white oak. Precision-milled aluminum. A desk made for decades.",
+  ],
+  [
+    "03",
+    "Knows your rhythm",
+    "Four programmable heights remember exactly where you do your best work.",
+  ],
+];
+const reviews = [
+  [
+    "“The one piece in my office that makes every other decision feel better.”",
+    "Maya R.",
+    "Brooklyn, NY",
+  ],
+  [
+    "“Beautifully quiet, absurdly solid. It changed my posture — and my afternoons.”",
+    "Elliot S.",
+    "San Francisco, CA",
+  ],
+  [
+    "“It has the restraint of a great tool. Nothing extra, everything considered.”",
+    "Nora K.",
+    "Chicago, IL",
+  ],
+];
+const rise = { hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0 } };
+function Reveal({ children, className = "", delay = 0 }) {
+  return (
+    <motion.div
+      className={className}
+      variants={rise}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.18 }}
+      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+function App() {
+  const [cart, setCart] = useState(false),
+    [menu, setMenu] = useState(false),
+    [qty, setQty] = useState(1),
+    [added, setAdded] = useState(false),
+    [frame, setFrame] = useState("black"),
+    [scrolled, setScrolled] = useState(false),
+    [email, setEmail] = useState(""),
+    [subscribed, setSubscribed] = useState(false),
+    [checkout, setCheckout] = useState(false),
+    [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  useEffect(() => {
+    const silver = new Image();
+    silver.src = deskSilver;
+  }, []);
+  const add = () => {
+    setAdded(true);
+    setCart(true);
+    setCheckout(false);
+  };
+  const changeFrame = (next) => {
+    if (next !== frame) setFrame(next);
+  };
+  const subscribe = (e) => {
+    e.preventDefault();
+    if (email.includes("@")) setSubscribed(true);
+  };
+  const beginCheckout = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      setCheckout(true);
+    }, 650);
+  };
+  const closeMenu = () => setMenu(false);
+  return (
+    <>
+      <header className={scrolled ? "is-scrolled" : ""}>
+        <a className="brand" href="#top">
+          Luma<span>Desk</span>
+        </a>
+        <nav>
+          <a href="#design">Design</a>
+          <a href="#specs">Specifications</a>
+          <a href="#stories">Stories</a>
+          <a href="#support">Support</a>
+        </nav>
+        <button
+          className="bag"
+          onClick={() => setCart(true)}
+          aria-label="Open cart"
+        >
+          <ShoppingBag size={18} />
+          {added && <i />}
+        </button>
+        <button
+          className="menub"
+          onClick={() => setMenu(!menu)}
+          aria-label={menu ? "Close menu" : "Open menu"}
+          aria-expanded={menu}
+        >
+          {menu ? <X /> : <Menu />}
+        </button>
+      </header>
+      <AnimatePresence>
+        {menu && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.22 }}
+            className="mobile-nav"
+          >
+            <a onClick={closeMenu} href="#design">
+              Design
+            </a>
+            <a onClick={closeMenu} href="#specs">
+              Specifications
+            </a>
+            <a onClick={closeMenu} href="#stories">
+              Stories
+            </a>
+            <button
+              onClick={() => {
+                closeMenu();
+                add();
+              }}
+            >
+              Shop LumaDesk Pro
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <main id="top">
+        <section className="hero">
+          <div className="hero-copy">
+            <p className="eyebrow">
+              THE NEW LUMADESK PRO <b>•</b> 2026
+            </p>
+            <h1>
+              Elevate your work.
+              <br />
+              <em>Transform your life.</em>
+            </h1>
+            <p className="lede">
+              A standing desk crafted with an uncompromising belief: the objects
+              you work with should make you feel more capable.
+            </p>
+            <div className="hero-actions">
+              <button className="primary" onClick={add}>
+                Shop LumaDesk Pro <ArrowUpRight size={17} />
+              </button>
+              <button className="text-btn">
+                <span>
+                  <Play size={12} fill="currentColor" />
+                </span>{" "}
+                Watch the film
+              </button>
+            </div>
+          </div>
+          <div className="hero-art">
+            <img
+              src={desk}
+              alt="LumaDesk Pro oak standing desk in a quiet modern workspace"
+            />
+            <div className="hero-note">
+              Natural white oak
+              <br />
+              <b>From $1,895</b>
+            </div>
+          </div>
+          <div className="scroll">
+            SCROLL TO EXPLORE <span>↓</span>
+          </div>
+        </section>
+        <section className="manifesto" id="design">
+          <Reveal>
+            <p className="eyebrow">MORE THAN A DESK</p>
+            <h2>
+              Your best work deserves
+              <br />a better place to happen.
+            </h2>
+            <p>
+              Designed in Copenhagen and engineered in California, LumaDesk Pro
+              is the quiet center of a more intentional workday.
+            </p>
+          </Reveal>
+        </section>
+        <section className="feature-wrap">
+          {features.map(([n, t, d], i) => (
+            <Reveal className="feature" delay={i * 0.08} key={n}>
+              <span>{n}</span>
+              <div>
+                <h3>{t}</h3>
+                <p>{d}</p>
+                <a href="#specs">
+                  Explore the details <ArrowRight size={15} />
+                </a>
+              </div>
+            </Reveal>
+          ))}
+        </section>
+        <section className="image-break">
+          <img
+            loading="lazy"
+            decoding="async"
+            src={desk}
+            alt="Close view of the LumaDesk Pro"
+          />
+          <Reveal>
+            <p className="eyebrow">MADE TO MOVE</p>
+            <h2>
+              Movement,
+              <br />
+              <em>made effortless.</em>
+            </h2>
+            <p>
+              The LumaDrive™ system brings an unusually smooth, considered
+              experience to every transition. From sitting to standing in 9
+              seconds flat.
+            </p>
+            <button className="text-btn">
+              Discover LumaDrive <ArrowUpRight size={16} />
+            </button>
+          </Reveal>
+        </section>
+        <section className="specs" id="specs">
+          <Reveal>
+            <p className="eyebrow">ENGINEERING, REFINED</p>
+            <h2>
+              Considered
+              <br />
+              from every angle.
+            </h2>
+          </Reveal>
+          <div className="spec-grid">
+            {[
+              ["01", "Height range", "24.5 — 50.2 in"],
+              ["02", "Load capacity", "350 lb"],
+              ["03", "Rise speed", "1.7 in / sec"],
+              ["04", "Warranty", "5 years"],
+            ].map(([n, label, value], i) => (
+              <Reveal key={n} delay={i * 0.07}>
+                <b>{n}</b>
+                <span>{label}</span>
+                <strong>{value}</strong>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+        <section className="product">
+          <div className="product-img">
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={frame}
+                className="product-photo"
+                initial={{ opacity: 0, scale: 1.015 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                src={frame === "black" ? desk : deskSilver}
+                alt={`LumaDesk Pro in white oak with ${frame} frame`}
+              />
+            </AnimatePresence>
+            <span>WHITE OAK / {frame.toUpperCase()}</span>
+          </div>
+          <Reveal className="product-info">
+            <p className="eyebrow">THE FLAGSHIP</p>
+            <h2>LumaDesk Pro</h2>
+            <p className="price">From $1,895</p>
+            <p>
+              Made-to-order, delivered in 2–3 weeks. Complimentary white-glove
+              delivery in the continental US.
+            </p>
+            <div className="selectors">
+              <div>
+                <label>Desktop finish</label>
+                <button className="choice">
+                  <i /> Natural white oak <ChevronDown size={16} />
+                </button>
+              </div>
+              <div>
+                <label>Frame</label>
+                <div
+                  className="dots"
+                  role="radiogroup"
+                  aria-label="Frame color"
+                >
+                  <button
+                    className={`black ${frame === "black" ? "active" : ""}`}
+                    onClick={() => changeFrame("black")}
+                    aria-label="Black frame"
+                    role="radio"
+                    aria-checked={frame === "black"}
+                  />
+                  <button
+                    className={`silver ${frame === "silver" ? "active" : ""}`}
+                    onClick={() => changeFrame("silver")}
+                    aria-label="Silver frame"
+                    role="radio"
+                    aria-checked={frame === "silver"}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="buy">
+              <div>
+                <button
+                  onClick={() => setQty(Math.max(1, qty - 1))}
+                  aria-label="Decrease quantity"
+                >
+                  <Minus size={15} />
+                </button>
+                <span aria-live="polite">{qty}</span>
+                <button
+                  onClick={() => setQty(qty + 1)}
+                  aria-label="Increase quantity"
+                >
+                  <Plus size={15} />
+                </button>
+              </div>
+              <button className="primary" onClick={add}>
+                Add to bag — ${1895 * qty}
+              </button>
+            </div>
+            <small>
+              <Check size={14} /> Ships free · 30-day home trial
+            </small>
+          </Reveal>
+        </section>
+        <section className="quotes" id="stories">
+          <Reveal>
+            <p className="eyebrow">IN THEIR WORDS</p>
+            <h2>Work, elevated.</h2>
+          </Reveal>
+          <div>
+            {reviews.map((r, i) => (
+              <Reveal key={i} delay={i * 0.1}>
+                <article>
+                  <div className="stars">★★★★★</div>
+                  <blockquote>{r[0]}</blockquote>
+                  <p>
+                    <b>{r[1]}</b>
+                    <br />
+                    {r[2]}
+                  </p>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+        <section className="newsletter" id="support">
+          <Reveal>
+            <p className="eyebrow">STAY IN THE LOOP</p>
+            <h2>
+              For a more
+              <br />
+              <em>intentional workday.</em>
+            </h2>
+            <form onSubmit={subscribe}>
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Your email address"
+                type="email"
+                required
+                aria-label="Email address"
+              />
+              <button aria-label="Subscribe">
+                <ArrowRight size={20} />
+              </button>
+            </form>
+            <small aria-live="polite">
+              {subscribed
+                ? "You’re on the list."
+                : "New product notes, studio visits, and considered ideas. No noise."}
+            </small>
+          </Reveal>
+        </section>
+      </main>
+      <footer>
+        <a className="brand">
+          Luma<span>Desk</span>
+        </a>
+        <p>Work, elevated.</p>
+        <div>
+          <a>Instagram</a>
+          <a>Contact</a>
+          <a>Shipping & Returns</a>
+          <a>Privacy</a>
+        </div>
+        <small>© 2026 LumaDesk, Inc.</small>
+      </footer>
+      <AnimatePresence>
+        {cart && (
+          <>
+            <motion.button
+              aria-label="Close cart"
+              className="cart-scrim"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setCart(false)}
+            />
+            <motion.aside
+              role="dialog"
+              aria-modal="true"
+              aria-label="Shopping bag"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{
+                type: "tween",
+                duration: 0.35,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="cart"
+            >
+              <div className="cart-head">
+                <h2>{checkout ? "Checkout" : "Your bag"}</h2>
+                <button onClick={() => setCart(false)} aria-label="Close cart">
+                  <X />
+                </button>
+              </div>
+              {checkout ? (
+                <div className="checkout-success">
+                  <Check size={24} />
+                  <h3>Your desk is reserved.</h3>
+                  <p>We’ll guide you through delivery details next.</p>
+                  <button onClick={() => setCart(false)} className="primary">
+                    Continue
+                  </button>
+                </div>
+              ) : added ? (
+                <>
+                  <div className="cart-item">
+                    <img
+                      loading="lazy"
+                      src={frame === "black" ? desk : deskSilver}
+                      alt="LumaDesk Pro"
+                    />
+                    <div>
+                      <b>LumaDesk Pro</b>
+                      <p>Natural white oak / {frame}</p>
+                      <strong>${1895 * qty}</strong>
+                      <button
+                        className="remove"
+                        onClick={() => setAdded(false)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                  <div className="cart-bottom">
+                    <div>
+                      <span>Subtotal</span>
+                      <b>${1895 * qty}</b>
+                    </div>
+                    <p>Complimentary delivery included</p>
+                    <button
+                      disabled={isLoading}
+                      className="primary"
+                      onClick={beginCheckout}
+                    >
+                      {isLoading ? (
+                        "Preparing checkout…"
+                      ) : (
+                        <>
+                          Continue to checkout <ArrowRight size={16} />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="empty">
+                  <ShoppingBag size={30} />
+                  <p>Your bag is waiting for something exceptional.</p>
+                  <button onClick={() => setCart(false)} className="text-btn">
+                    Continue browsing
+                  </button>
+                </div>
+              )}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+createRoot(document.getElementById("root")).render(<App />);
