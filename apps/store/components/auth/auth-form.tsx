@@ -18,10 +18,10 @@ const schemas = {
 
 type FormValues = Record<string, string | boolean>;
 
-export function AuthForm({ mode, next = "/" }: { mode: Mode; next?: string }) {
+export function AuthForm({ mode, next = "/", initialNotice }: { mode: Mode; next?: string; initialNotice?: string }) {
   const schema = schemas[mode] as z.ZodType<FormValues>;
   const form = useForm<FormValues>({ resolver: zodResolver(schema as never), defaultValues: { remember: true } });
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(initialNotice ?? null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const supabase = createClient();
   const isPasswordMode = mode === "login" || mode === "register" || mode === "reset";
@@ -40,12 +40,12 @@ export function AuthForm({ mode, next = "/" }: { mode: Mode; next?: string }) {
       ({ error } = await supabase.auth.signUp({
         email: String(values.email),
         password: String(values.password),
-        options: { emailRedirectTo: `${origin}/auth/callback?next=/verify-email`, data: { first_name: values.firstName, last_name: values.lastName } },
+        options: { emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/verify-email")}`, data: { first_name: values.firstName, last_name: values.lastName } },
       }));
       if (!error) setNotice("Check your email to verify your account before signing in.");
     }
     if (mode === "forgot") {
-      ({ error } = await supabase.auth.resetPasswordForEmail(String(values.email), { redirectTo: `${origin}/auth/callback?next=/reset-password` }));
+      ({ error } = await supabase.auth.resetPasswordForEmail(String(values.email), { redirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/reset-password")}` }));
       if (!error) setNotice("If an account exists for this address, a reset link is on its way.");
     }
     if (mode === "reset") {

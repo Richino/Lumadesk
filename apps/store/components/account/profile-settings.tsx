@@ -21,12 +21,12 @@ export function ProfileSettings({ profile }: { profile: Profile }) {
     setBusy(true); setEmailNotice(null);
     const email = String(formData.get("email")).trim();
     if (email === profile.email) { setEmailNotice("Enter a different email address to request a confirmation link."); setBusy(false); return; }
-    const { error } = await supabase.auth.updateUser({ email }, { emailRedirectTo: `${window.location.origin}/auth/callback?next=/change-email?confirmed=1` });
+    const { error } = await supabase.auth.updateUser({ email }, { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/change-email?confirmed=1")}` });
     setEmailNotice(error ? error.message : "Confirmation links have been sent to your current and new email addresses."); setBusy(false);
   };
   const requestPasswordReset = async () => {
     setBusy(true); setPasswordNotice(null);
-    const { error } = await supabase.auth.resetPasswordForEmail(profile.email, { redirectTo: `${window.location.origin}/auth/callback?next=/reset-password` });
+    const { error } = await supabase.auth.resetPasswordForEmail(profile.email, { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/reset-password")}` });
     setPasswordNotice(error ? error.message : "A secure password-reset link has been sent to your email."); setBusy(false);
   };
   const uploadAvatar = async (file: File) => { setBusy(true); const path = `${profile.id}/avatar-${Date.now()}.${file.name.split(".").pop()}`; const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: false }); if (error) setNotice(error.message); else { const { data } = supabase.storage.from("avatars").getPublicUrl(path); const update = await supabase.from("users").update({ avatar_url: data.publicUrl }).eq("id", profile.id); setNotice(update.error?.message ?? "Your portrait has been updated."); } setBusy(false); };
