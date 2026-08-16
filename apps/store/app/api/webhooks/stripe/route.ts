@@ -10,11 +10,27 @@ export const dynamic = "force-dynamic";
 async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
   if (session.payment_status !== "paid") throw new Error("Checkout session has not been paid.");
 
-  const variantId = session.metadata?.variant_id;
-  const quantity = Number(session.metadata?.quantity ?? 0);
-  const unitPriceCents = Number(session.metadata?.unit_price_cents ?? 0);
   const email = session.customer_details?.email ?? session.customer_email ?? "";
-  if (!variantId || !Number.isInteger(quantity) || quantity < 1 || !Number.isInteger(unitPriceCents) || unitPriceCents < 1 || !email) {
+  let items: { v: string; q: number; p: number }[] = [];
+  try {
+    const parsed = JSON.parse(session.metadata?.items ?? "[]");
+    if (Array.isArray(parsed)) items = parsed;
+  } catch {
+    items = [];
+  }
+  const itemsValid =
+    items.length > 0 &&
+    items.every(
+      (item) =>
+        typeof item.v === "string" &&
+        item.v.length > 0 &&
+        Number.isInteger(item.q) &&
+        item.q >= 1 &&
+        item.q <= 10 &&
+        Number.isInteger(item.p) &&
+        item.p >= 1,
+    );
+  if (!email || !itemsValid) {
     throw new Error("Invalid checkout metadata.");
   }
 
@@ -28,9 +44,7 @@ async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
     p_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
     p_user_id: session.metadata?.user_id || null,
     p_email: email,
-    p_variant_id: variantId,
-    p_quantity: quantity,
-    p_unit_price_cents: unitPriceCents,
+    p_items: items.map((item) => ({ variant_id: item.v, quantity: item.q, unit_price_cents: item.p })),
     p_subtotal_cents: subtotal,
     p_tax_cents: tax,
     p_shipping_cents: shipping,

@@ -51,8 +51,10 @@ export function AuthForm({ mode, next = "/", initialNotice }: { mode: Mode; next
     if (mode === "reset") {
       ({ error } = await supabase.auth.updateUser({ password: String(values.password) }));
       if (!error) {
+        // Revoke every session after a reset so a compromised one can't persist.
+        await supabase.auth.signOut({ scope: "global" });
         setNotice("Your password has been updated. Redirecting you to sign in…");
-        window.setTimeout(() => window.location.assign("/login"), 900);
+        window.setTimeout(() => window.location.assign("/login?message=password_updated"), 900);
       }
     }
     if (error) setNotice(error.message);

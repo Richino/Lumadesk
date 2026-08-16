@@ -2,15 +2,39 @@ import Link from "next/link";
 import { LumaDeskCheckoutElements } from "@/components/checkout/checkout-elements";
 
 type CheckoutPageProps = {
-  searchParams: Promise<{ variantSlug?: string; quantity?: string }>;
+  searchParams: Promise<{ items?: string }>;
 };
 
-export default async function CheckoutPage({ searchParams }: CheckoutPageProps) {
-  const { variantSlug, quantity: rawQuantity } = await searchParams;
-  const quantity = Number(rawQuantity);
-  const isValidQuantity = Number.isInteger(quantity) && quantity >= 1 && quantity <= 10;
+type CheckoutItem = { variantSlug: string; quantity: number };
 
-  if (!variantSlug || !isValidQuantity) {
+// Items arrive as a compact `slug:qty,slug:qty` string from the bag. Any
+// malformed entry invalidates the whole request so checkout never starts with
+// a partial or tampered configuration.
+function parseItems(raw: string | undefined): CheckoutItem[] {
+  if (!raw) return [];
+  const items: CheckoutItem[] = [];
+  for (const part of raw.split(",")) {
+    const [slug, rawQuantity] = part.split(":");
+    const quantity = Number(rawQuantity);
+    if (
+      !slug ||
+      !/^[a-z0-9-]+$/.test(slug) ||
+      !Number.isInteger(quantity) ||
+      quantity < 1 ||
+      quantity > 10
+    ) {
+      return [];
+    }
+    items.push({ variantSlug: slug, quantity });
+  }
+  return items.slice(0, 20);
+}
+
+export default async function CheckoutPage({ searchParams }: CheckoutPageProps) {
+  const { items: raw } = await searchParams;
+  const items = parseItems(raw);
+
+  if (!items.length) {
     return (
       <main className="checkout-page">
         <section className="checkout-panel checkout-invalid">
@@ -24,6 +48,8 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
     );
   }
 
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <main className="checkout-page">
       <header className="checkout-header">
@@ -34,12 +60,12 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
         <aside className="checkout-intro">
           <h1>Complete your order.</h1>
           <div className="checkout-order-line">
-            <strong>LumaDesk Pro</strong>
+            <strong>LumaDesk Pro{itemCount > 1 ? ` · ${itemCount} desks` : ""}</strong>
             <span>Made to order · Complimentary delivery · 30-day trial</span>
           </div>
         </aside>
         <section className="checkout-form-flow" aria-label="Secure payment form">
-          <LumaDeskCheckoutElements variantSlug={variantSlug} quantity={quantity} />
+          <LumaDeskCheckoutElements items={items} />
         </section>
       </section>
     </main>

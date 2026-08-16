@@ -9,3 +9,6 @@ graphify-out/
 .codex-variants-stash/
 lumadesk-site.tar.gz
 supabase/.temp/
+*.tsbuildinfo
+
+.vercel

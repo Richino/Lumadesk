@@ -23,7 +23,16 @@ export async function GET(request: Request) {
     error = { message: "Missing recovery credentials." };
   }
 
-  if (!error) return NextResponse.redirect(new URL(next, url.origin));
+  if (!error) {
+    // A confirmed email change revokes every session (this one included) so a
+    // hijacked session can't outlive a credential change. The user signs back
+    // in with the new address.
+    if (type === "email_change") {
+      await supabase.auth.signOut({ scope: "global" });
+      return NextResponse.redirect(new URL("/login?message=email_updated", url.origin));
+    }
+    return NextResponse.redirect(new URL(next, url.origin));
+  }
 
   // Keep the provider error in server logs for diagnosis, but never expose
   // recovery-token details to the browser.

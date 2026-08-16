@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { avatarFromAuthUser, resolveAvatarUrl } from "@/lib/auth/avatar";
 import { createClient } from "@/lib/supabase/server";
 
 export type Profile = {
@@ -26,5 +27,14 @@ export async function requireUser(): Promise<Profile> {
     .single();
 
   if (!profile) redirect("/login?message=profile_missing");
-  return profile as Profile;
+  const authClaims = claims.claims as { user_metadata?: unknown };
+  let avatarUrl = resolveAvatarUrl(profile.avatar_url, authClaims.user_metadata);
+  if (!avatarUrl) {
+    const { data } = await supabase.auth.getUser();
+    avatarUrl = avatarFromAuthUser(data.user);
+  }
+  return {
+    ...profile,
+    avatar_url: avatarUrl,
+  } as Profile;
 }

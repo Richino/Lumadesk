@@ -12,9 +12,10 @@ import {
 import { loadStripe } from "@stripe/stripe-js";
 import type { Appearance, StripeCheckoutElementsSdkOptions } from "@stripe/stripe-js";
 
+type CheckoutItem = { variantSlug: string; quantity: number };
+
 type CheckoutElementsProps = {
-  variantSlug: string;
-  quantity: number;
+  items: CheckoutItem[];
 };
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -202,12 +203,13 @@ function CheckoutForm() {
   );
 }
 
-function CheckoutElementsClient({ variantSlug, quantity }: CheckoutElementsProps) {
+function CheckoutElementsClient({ items }: CheckoutElementsProps) {
+  const itemsKey = JSON.stringify(items);
   const options = useMemo<StripeCheckoutElementsSdkOptions>(() => ({
     clientSecret: fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ variantSlug, quantity }),
+      body: JSON.stringify({ items }),
     }).then(async (response) => {
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.clientSecret) throw new Error(data.error ?? "Checkout could not be prepared.");
@@ -219,7 +221,8 @@ function CheckoutElementsClient({ variantSlug, quantity }: CheckoutElementsProps
       syncAddressCheckbox: "billing",
       fonts: [{ cssSrc: "https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" }],
     },
-  }), [quantity, variantSlug]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [itemsKey]);
 
   if (!stripePromise) {
     return <p className="checkout-error">Checkout is unavailable because the Stripe publishable key is missing.</p>;

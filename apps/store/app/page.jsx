@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
+import { AccountAvatar } from "@/components/account/account-avatar";
+import { avatarFromAuthUser, resolveAvatarUrl } from "@/lib/auth/avatar";
 import {
   ArrowUpRight,
   Menu,
@@ -15,11 +17,11 @@ import {
   Star,
   ArrowRight,
   ChevronDown,
-  UserRound,
 } from "lucide-react";
 
+import { CART_STORAGE_KEY } from "@/lib/cart";
+
 const desk = "/images/lumadesk-product-master.png";
-const CART_STORAGE_KEY = "lumadesk-cart-v1";
 // Canonical LumaDesk product image supplied by the brand. Future finish variants
 // must be direct edits of this locked composition, never a recreated scene.
 const productVariants = {
@@ -92,9 +94,10 @@ function App() {
     [email, setEmail] = useState(""),
     [subscribed, setSubscribed] = useState(false),
     [isLoading, setIsLoading] = useState(false);
-  const [cartItem, setCartItem] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
   const [cartHydrated, setCartHydrated] = useState(false);
   const [signedIn, setSignedIn] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const [accountMenu, setAccountMenu] = useState(false);
   const finishPickerRef = useRef(null);
   const accountMenuRef = useRef(null);
@@ -115,8 +118,16 @@ function App() {
       const savedCart = window.localStorage.getItem(CART_STORAGE_KEY);
       if (savedCart) {
         const parsed = JSON.parse(savedCart);
-        if (productVariants[parsed.finish]?.frames[parsed.frame] && Number.isInteger(parsed.quantity) && parsed.quantity >= 1 && parsed.quantity <= 10) {
-          setCartItem(parsed);
+        if (Array.isArray(parsed)) {
+          setCartItems(
+            parsed.filter(
+              (item) =>
+                productVariants[item.finish]?.frames[item.frame] &&
+                Number.isInteger(item.quantity) &&
+                item.quantity >= 1 &&
+                item.quantity <= 10,
+            ),
+          );
         }
       }
     } catch {
@@ -127,17 +138,35 @@ function App() {
   }, []);
   useEffect(() => {
     if (!cartHydrated) return;
-    if (cartItem) window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItem));
+    if (cartItems.length) window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
     else window.localStorage.removeItem(CART_STORAGE_KEY);
-  }, [cartHydrated, cartItem]);
+  }, [cartHydrated, cartItems]);
   useEffect(() => {
     const supabase = createClient();
+    const applyUser = async (user) => {
+      setSignedIn(Boolean(user));
+      if (!user) {
+        setAvatarUrl(null);
+        return;
+      }
+      const { data: profile } = await supabase
+        .from("users")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      setAvatarUrl(
+        resolveAvatarUrl(profile?.avatar_url, user.user_metadata) ||
+          avatarFromAuthUser(user),
+      );
+    };
     const syncUser = async () => {
       const { data } = await supabase.auth.getUser();
-      setSignedIn(Boolean(data.user));
+      await applyUser(data.user);
     };
     void syncUser();
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setSignedIn(Boolean(session?.user)));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      void applyUser(session?.user ?? null);
+    });
     return () => listener.subscription.unsubscribe();
   }, []);
   useEffect(() => {
@@ -156,9 +185,26 @@ function App() {
     };
   }, [accountMenu]);
   const add = () => {
-    setCartItem({ finish, frame, quantity: qty });
+    setCartItems((items) => {
+      const index = items.findIndex((item) => item.finish === finish && item.frame === frame);
+      if (index === -1) return [...items, { finish, frame, quantity: qty }];
+      const next = [...items];
+      next[index] = { ...next[index], quantity: Math.min(10, next[index].quantity + qty) };
+      return next;
+    });
     setCart(true);
   };
+  const removeItem = (index) =>
+    setCartItems((items) => items.filter((_, i) => i !== index));
+  const changeItemQty = (index, delta) =>
+    setCartItems((items) =>
+      items.map((item, i) =>
+        i === index
+          ? { ...item, quantity: Math.min(10, Math.max(1, item.quantity + delta)) }
+          : item,
+      ),
+    );
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const changeFrame = (next) => {
     if (next !== frame) setFrame(next);
   };
@@ -168,10 +214,12 @@ function App() {
     if (response.ok) setSubscribed(true);
   };
   const beginCheckout = async () => {
-    if (!cartItem) return;
+    if (!cartItems.length) return;
     setIsLoading(true);
-    const params = new URLSearchParams({ variantSlug: variantSlugs[cartItem.finish][cartItem.frame], quantity: String(cartItem.quantity) });
-    window.location.assign(`/checkout?${params.toString()}`);
+    const items = cartItems
+      .map((item) => `${variantSlugs[item.finish][item.frame]}:${item.quantity}`)
+      .join(",");
+    window.location.assign(`/checkout?items=${encodeURIComponent(items)}`);
   };
   const closeMenu = () => setMenu(false);
   return (
@@ -189,7 +237,7 @@ function App() {
         <div className="header-actions">
           {signedIn ? <div className="account-menu" ref={accountMenuRef}>
             <button className="account-trigger" type="button" onClick={() => setAccountMenu((open) => !open)} aria-label="Open account menu" aria-expanded={accountMenu} aria-controls="account-menu">
-              <UserRound size={17} strokeWidth={1.8} />
+              <AccountAvatar url={avatarUrl} />
             </button>
             <AnimatePresence>
               {accountMenu && <motion.div id="account-menu" className="account-popover" role="menu" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }}>
@@ -205,7 +253,7 @@ function App() {
             aria-label="Open cart"
           >
             <ShoppingBag size={18} />
-            {cartItem && <i />}
+            {cartItems.length > 0 && <i />}
           </button>
         </div>
         <button
@@ -581,32 +629,53 @@ function App() {
                   <X />
                 </button>
               </div>
-              {cartItem ? (
+              {cartItems.length ? (
                 <>
-                  <div className="cart-item">
-                    <Image
-                      src={productVariants[cartItem.finish].frames[cartItem.frame]}
-                      alt="LumaDesk Pro"
-                      width={100}
-                      height={100}
-                      sizes="100px"
-                    />
-                    <div>
-                      <b>LumaDesk Pro</b>
-                      <p>{productVariants[cartItem.finish].label} / {frameNames[cartItem.frame]}</p>
-                      <strong>${1895 * cartItem.quantity}</strong>
-                      <button
-                        className="remove"
-                        onClick={() => setCartItem(null)}
-                      >
-                        Remove
-                      </button>
-                    </div>
+                  <div className="cart-items">
+                    {cartItems.map((item, index) => (
+                      <div className="cart-item" key={`${item.finish}-${item.frame}`}>
+                        <Image
+                          src={productVariants[item.finish].frames[item.frame]}
+                          alt="LumaDesk Pro"
+                          width={100}
+                          height={100}
+                          sizes="100px"
+                        />
+                        <div>
+                          <b>LumaDesk Pro</b>
+                          <p>{productVariants[item.finish].label} / {frameNames[item.frame]}</p>
+                          <strong>${1895 * item.quantity}</strong>
+                          <div className="cart-qty">
+                            <button
+                              onClick={() => changeItemQty(index, -1)}
+                              aria-label="Decrease quantity"
+                              disabled={item.quantity <= 1}
+                            >
+                              <Minus size={13} />
+                            </button>
+                            <span aria-live="polite">{item.quantity}</span>
+                            <button
+                              onClick={() => changeItemQty(index, 1)}
+                              aria-label="Increase quantity"
+                              disabled={item.quantity >= 10}
+                            >
+                              <Plus size={13} />
+                            </button>
+                          </div>
+                          <button
+                            className="remove"
+                            onClick={() => removeItem(index)}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                   <div className="cart-bottom">
                     <div>
                       <span>Subtotal</span>
-                      <b>${1895 * cartItem.quantity}</b>
+                      <b>${1895 * cartCount}</b>
                     </div>
                     <p>Complimentary delivery included</p>
                     <button
