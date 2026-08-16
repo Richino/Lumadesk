@@ -33,7 +33,10 @@ const appearance: Appearance = {
     colorTextSecondary: "#67645E",
     colorTextPlaceholder: "#8B877F",
     fontFamily: "Inter, Arial, sans-serif",
-    fontSizeBase: "14px",
+    // 16px keeps iOS Safari from zooming when a card field gains focus. These
+    // fields render inside Stripe's iframe, so the storefront's scale trick
+    // can't reach them — the real font size has to be 16px.
+    fontSizeBase: "16px",
     fontSizeSm: "11px",
     fontWeightMedium: "600",
     spacingGridRow: "10px",
@@ -52,7 +55,7 @@ const appearance: Appearance = {
       border: "1px solid #CFCBC3",
       boxShadow: "none",
       color: "#111111",
-      fontSize: "14px",
+      fontSize: "16px",
       padding: "10px 13px",
       transition: "border-color 150ms ease, box-shadow 150ms ease",
     },
