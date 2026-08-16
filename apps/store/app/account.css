@@ -15,18 +15,45 @@
   justify-content: space-between;
   box-shadow: none;
 }
+.account-header .brand {
+  font-size: 23px;
+  letter-spacing: -1.7px;
+}
 .account-header .account-menu {
   position: relative;
 }
 .account-header .account-trigger {
+  width: 38px;
+  height: 38px;
+  border-color: #111;
+  background: #111;
+  color: #fff;
   list-style: none;
   cursor: pointer;
+}
+.account-header .account-trigger:hover {
+  border-color: #4a4740;
+  background: #4a4740;
 }
 .account-header .account-trigger::-webkit-details-marker {
   display: none;
 }
+.account-header .account-trigger::marker {
+  display: none;
+}
 .account-header .account-popover {
   top: calc(100% + 11px);
+  min-width: 184px;
+  padding: 8px;
+  border-color: #d2cec5;
+  box-shadow: 0 20px 48px #1f1a101c;
+}
+.account-header .account-popover a,
+.account-header .account-popover button {
+  padding: 12px 13px;
+  font-size: 10px;
+  letter-spacing: .035em;
+  text-transform: uppercase;
 }
 .account-content {
   width: min(100%, 720px);
