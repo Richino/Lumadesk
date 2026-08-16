@@ -9,6 +9,7 @@ export async function POST() {
   if (!userId) return NextResponse.json({ error: "Unauthenticated." }, { status: 401 });
 
   try {
+    // `orders.user_id` is ON DELETE SET NULL, preserving order history when an account is removed.
     const { error } = await createServiceRoleClient().auth.admin.deleteUser(userId, true);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     await supabase.auth.signOut();

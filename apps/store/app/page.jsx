@@ -204,8 +204,6 @@ function App() {
             <AnimatePresence>
               {accountMenu && <motion.div id="account-menu" className="account-popover" role="menu" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }}>
                 <a href="/orders" role="menuitem">Orders</a>
-                <a href="/wishlist" role="menuitem">Saved desks</a>
-                <a href="/addresses" role="menuitem">Addresses</a>
                 <a href="/settings" role="menuitem">Settings</a>
                 <form action="/auth/signout" method="post"><button type="submit" role="menuitem">Sign out</button></form>
               </motion.div>}
@@ -247,7 +245,7 @@ function App() {
             <a onClick={closeMenu} href="#stories">
               Stories
             </a>
-            {signedIn ? <><a onClick={closeMenu} href="/orders">My orders</a><a onClick={closeMenu} href="/wishlist">Saved desks</a></> : <><a onClick={closeMenu} href="/login">Sign in</a><a onClick={closeMenu} href="/register">Create account</a></>}
+            {signedIn ? <a onClick={closeMenu} href="/orders">My orders</a> : <><a onClick={closeMenu} href="/login">Sign in</a><a onClick={closeMenu} href="/register">Create account</a></>}
             <button onClick={() => { closeMenu(); setCart(true); }}>Open bag</button>
             <button
               onClick={() => {

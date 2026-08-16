@@ -136,6 +136,45 @@
   border-color: #111;
   outline: none;
 }
+.portrait-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.portrait-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.settings-card .portrait-upload {
+  display: inline-flex;
+  width: auto;
+  min-height: 42px;
+  align-items: center;
+  padding: 0 15px;
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  transition: background .2s ease, transform .2s ease;
+}
+.settings-card .portrait-upload:hover {
+  background: #3e3b35;
+  transform: translateY(-1px);
+}
+.portrait-file-name {
+  color: #6b675f;
+  font-size: 11px;
+}
 .settings-card .auth-check {
   display: flex;
   align-items: center;
