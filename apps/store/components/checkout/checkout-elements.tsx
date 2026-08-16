@@ -21,98 +21,109 @@ type CheckoutElementsProps = {
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
-const appearance: Appearance = {
-  theme: "flat",
-  labels: "above",
-  variables: {
-    borderRadius: "0px",
-    colorBackground: "#F6F5F1",
-    colorDanger: "#8A2727",
-    colorPrimary: "#111111",
-    colorText: "#111111",
-    colorTextSecondary: "#67645E",
-    colorTextPlaceholder: "#8B877F",
-    fontFamily: "Inter, Arial, sans-serif",
-    // 16px keeps iOS Safari from zooming when a card field gains focus. These
-    // fields render inside Stripe's iframe, so the storefront's scale trick
-    // can't reach them — the real font size has to be 16px.
-    fontSizeBase: "16px",
-    fontSizeSm: "11px",
-    fontWeightMedium: "600",
-    spacingGridRow: "10px",
-    spacingGridColumn: "12px",
-    spacingUnit: "4px",
-  },
-  rules: {
-    ".Block": {
-      backgroundColor: "transparent",
-      border: "0",
-      boxShadow: "none",
-      padding: "0",
+// Card fields live inside Stripe's iframe, so the storefront's "render at 16px,
+// scale back to 14px" trick (globals.css, @media pointer: coarse) can't reach
+// them from the outside. We reproduce it here instead: on touch devices every
+// length in the appearance is multiplied by 8/7 so inputs render at a real 16px
+// (which keeps iOS Safari from zooming on focus), then the field wrapper is
+// scaled by 7/8 in checkout.css so the whole block looks identical to the 14px
+// design. Desktop (fine pointer) uses the true sizes with no scaling.
+const TOUCH_FONT_SCALE = 8 / 7;
+
+function buildAppearance(coarse: boolean): Appearance {
+  const m = coarse ? TOUCH_FONT_SCALE : 1;
+  const px = (n: number) => `${Math.round(n * m * 1000) / 1000}px`;
+
+  return {
+    theme: "flat",
+    labels: "above",
+    variables: {
+      borderRadius: "0px",
+      colorBackground: "#F6F5F1",
+      colorDanger: "#8A2727",
+      colorPrimary: "#111111",
+      colorText: "#111111",
+      colorTextSecondary: "#67645E",
+      colorTextPlaceholder: "#8B877F",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSizeBase: px(14),
+      fontSizeSm: px(11),
+      fontWeightMedium: "600",
+      spacingGridRow: px(10),
+      spacingGridColumn: px(12),
+      spacingUnit: px(4),
     },
-    ".Input": {
-      backgroundColor: "#FFFFFF",
-      border: "1px solid #CFCBC3",
-      boxShadow: "none",
-      color: "#111111",
-      fontSize: "16px",
-      padding: "10px 13px",
-      transition: "border-color 150ms ease, box-shadow 150ms ease",
+    rules: {
+      ".Block": {
+        backgroundColor: "transparent",
+        border: "0",
+        boxShadow: "none",
+        padding: "0",
+      },
+      ".Input": {
+        backgroundColor: "#FFFFFF",
+        border: `${px(1)} solid #CFCBC3`,
+        boxShadow: "none",
+        color: "#111111",
+        fontSize: px(14),
+        padding: `${px(10)} ${px(13)}`,
+        transition: "border-color 150ms ease, box-shadow 150ms ease",
+      },
+      ".Input:hover": { borderColor: "#9D988F" },
+      ".Input:focus": {
+        borderColor: "#111111",
+        boxShadow: `0 0 0 ${px(1)} #111111`,
+        outline: "none",
+      },
+      ".Input--invalid": {
+        borderColor: "#8A2727",
+        boxShadow: `0 0 0 ${px(1)} #8A2727`,
+      },
+      ".Label": {
+        color: "#111111",
+        fontFamily: "DM Mono, monospace",
+        fontSize: px(10),
+        fontWeight: "500",
+        letterSpacing: "0.08em",
+        marginBottom: px(5),
+        textTransform: "uppercase",
+      },
+      ".AccordionItem": {
+        backgroundColor: "transparent",
+        border: "0",
+        boxShadow: "none",
+        padding: "0",
+      },
+      ".AccordionItem--selected": {
+        backgroundColor: "transparent",
+        border: "0",
+        boxShadow: "none",
+      },
+      ".CheckboxInput": {
+        backgroundColor: "#FFFFFF",
+        borderColor: "#A9A49A",
+        borderRadius: "0",
+      },
+      ".CheckboxInput--checked": {
+        backgroundColor: "#111111",
+        borderColor: "#111111",
+      },
+      ".CheckboxLabel": { color: "#67645E", fontSize: px(12) },
+      ".Error": { color: "#8A2727", fontSize: px(11) },
+      ".Tab": {
+        backgroundColor: "#FFFFFF",
+        borderColor: "#CFCBC3",
+        borderRadius: "0",
+        boxShadow: "none",
+      },
+      ".Tab--selected": {
+        backgroundColor: "#111111",
+        borderColor: "#111111",
+        color: "#FFFFFF",
+      },
     },
-    ".Input:hover": { borderColor: "#9D988F" },
-    ".Input:focus": {
-      borderColor: "#111111",
-      boxShadow: "0 0 0 1px #111111",
-      outline: "none",
-    },
-    ".Input--invalid": {
-      borderColor: "#8A2727",
-      boxShadow: "0 0 0 1px #8A2727",
-    },
-    ".Label": {
-      color: "#111111",
-      fontFamily: "DM Mono, monospace",
-      fontSize: "10px",
-      fontWeight: "500",
-      letterSpacing: "0.08em",
-      marginBottom: "5px",
-      textTransform: "uppercase",
-    },
-    ".AccordionItem": {
-      backgroundColor: "transparent",
-      border: "0",
-      boxShadow: "none",
-      padding: "0",
-    },
-    ".AccordionItem--selected": {
-      backgroundColor: "transparent",
-      border: "0",
-      boxShadow: "none",
-    },
-    ".CheckboxInput": {
-      backgroundColor: "#FFFFFF",
-      borderColor: "#A9A49A",
-      borderRadius: "0",
-    },
-    ".CheckboxInput--checked": {
-      backgroundColor: "#111111",
-      borderColor: "#111111",
-    },
-    ".CheckboxLabel": { color: "#67645E", fontSize: "12px" },
-    ".Error": { color: "#8A2727", fontSize: "11px" },
-    ".Tab": {
-      backgroundColor: "#FFFFFF",
-      borderColor: "#CFCBC3",
-      borderRadius: "0",
-      boxShadow: "none",
-    },
-    ".Tab--selected": {
-      backgroundColor: "#111111",
-      borderColor: "#111111",
-      color: "#FFFFFF",
-    },
-  },
-};
+  };
+}
 
 function CheckoutForm() {
   const checkoutResult = useCheckoutElements();
@@ -171,29 +182,31 @@ function CheckoutForm() {
     <form className="checkout-elements-form" onSubmit={submit}>
       <section className="checkout-form-section">
         <div className="checkout-section-heading"><span>01</span><h2>Contact</h2></div>
-        <ContactDetailsElement />
+        <div className="checkout-stripe-field"><ContactDetailsElement /></div>
       </section>
 
       <section className="checkout-form-section">
         <div className="checkout-section-heading"><span>02</span><h2>Delivery</h2></div>
-        <ShippingAddressElement options={{ display: { name: "split" } }} />
+        <div className="checkout-stripe-field"><ShippingAddressElement options={{ display: { name: "split" } }} /></div>
       </section>
 
       <section className="checkout-form-section">
         <div className="checkout-section-heading"><span>03</span><h2>Billing</h2></div>
-        <BillingAddressElement options={{ display: { name: "split" } }} />
+        <div className="checkout-stripe-field"><BillingAddressElement options={{ display: { name: "split" } }} /></div>
       </section>
 
       <section className="checkout-form-section">
         <div className="checkout-section-heading"><span>04</span><h2>Payment</h2></div>
-        <PaymentElement
-          options={{
-            layout: { type: "accordion", defaultCollapsed: false, radios: "never", spacedAccordionItems: false },
-            paymentMethodOrder: ["card"],
-            wallets: { applePay: "never", googlePay: "never", link: "never" },
-            terms: { card: "never" },
-          }}
-        />
+        <div className="checkout-stripe-field">
+          <PaymentElement
+            options={{
+              layout: { type: "accordion", defaultCollapsed: false, radios: "never", spacedAccordionItems: false },
+              paymentMethodOrder: ["card"],
+              wallets: { applePay: "never", googlePay: "never", link: "never" },
+              terms: { card: "never" },
+            }}
+          />
+        </div>
       </section>
 
       {error && <p className="checkout-error" role="alert">{error}</p>}
@@ -208,6 +221,12 @@ function CheckoutForm() {
 
 function CheckoutElementsClient({ items }: CheckoutElementsProps) {
   const itemsKey = JSON.stringify(items);
+  // Matches the storefront's @media (pointer: coarse) rule so the appearance
+  // (built here in JS) and the field scaling (applied in CSS) always agree.
+  const coarse = useMemo(
+    () => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches,
+    [],
+  );
   const options = useMemo<StripeCheckoutElementsSdkOptions>(() => ({
     clientSecret: fetch("/api/checkout", {
       method: "POST",
@@ -219,13 +238,13 @@ function CheckoutElementsClient({ items }: CheckoutElementsProps) {
       return data.clientSecret as string;
     }),
     elementsOptions: {
-      appearance,
+      appearance: buildAppearance(coarse),
       loader: "auto",
       syncAddressCheckbox: "billing",
       fonts: [{ cssSrc: "https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" }],
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [itemsKey]);
+  }), [itemsKey, coarse]);
 
   if (!stripePromise) {
     return <p className="checkout-error">Checkout is unavailable because the Stripe publishable key is missing.</p>;

@@ -113,6 +113,21 @@
 .checkout-form-section > .StripeElement,
 .checkout-form-section > div:last-child:not(.checkout-section-heading) { margin-left: 34px; }
 
+/* Touch devices: buildAppearance() renders the Stripe fields at 8/7 size so the
+   inputs are a real 16px (iOS Safari won't zoom on focus). Scale the wrapper
+   back down by 7/8 here so the block looks identical to the 14px design. Width
+   is pre-inflated by 1/0.875 (minus the 34px indent) so the scaled result still
+   fills the row; the layout box overflows right, so clip it on the form.
+   Desktop (fine pointer) keeps true sizes and is untouched. */
+@media (pointer: coarse) {
+  .checkout-elements-form { overflow-x: clip; }
+  .checkout-form-section > .checkout-stripe-field {
+    width: calc((100% - 34px) / 0.875);
+    transform: scale(0.875);
+    transform-origin: left center;
+  }
+}
+
 .checkout-pay {
   display: flex;
   min-height: 48px;
