@@ -737,6 +737,9 @@ footer div {
   top: 0;
   width: min(430px, 100vw);
   height: 100vh;
+  /* dvh tracks iOS Safari's dynamic toolbar so the checkout button at the
+     bottom is never hidden behind the browser chrome. vh stays as a fallback. */
+  height: 100dvh;
   background: #fff;
   box-shadow: -10px 0 40px #0002;
   display: flex;
@@ -747,6 +750,8 @@ footer div {
   align-items: center;
   justify-content: space-between;
   padding: 25px;
+  /* Clear the notch / status bar on iOS when the panel starts at the top. */
+  padding-top: calc(25px + env(safe-area-inset-top));
   border-bottom: 1px solid #eee;
 }
 .cart-head h2 {
@@ -784,6 +789,9 @@ footer div {
 .cart-items {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Keep scroll momentum inside the drawer instead of chaining to the page. */
+  overscroll-behavior: contain;
 }
 .cart-item + .cart-item {
   border-top: 1px solid #eee;
@@ -814,6 +822,8 @@ footer div {
 }
 .cart-bottom {
   padding: 24px;
+  /* Lift the checkout button above the iOS home indicator / Safari bar. */
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
   margin-top: auto;
   border-top: 1px solid #eee;
 }
