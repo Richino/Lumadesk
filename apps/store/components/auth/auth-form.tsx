@@ -61,7 +61,13 @@ export function AuthForm({ mode, next = "/dashboard" }: { mode: Mode; next?: str
 
   const google = async () => {
     setNotice(null);
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` } });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        queryParams: { prompt: "select_account" },
+      },
+    });
     if (error) setNotice(error.message);
   };
 
