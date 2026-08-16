@@ -1,0 +1,6 @@
+.loading-card { display: grid; gap: 18px; }
+.loading-line, .loading-block { border-radius: 2px; background: linear-gradient(90deg, #efeee9, #fff, #efeee9); background-size: 200% 100%; animation: auth-shimmer 1.3s ease-in-out infinite; }
+.loading-line { width: 100%; height: 16px; }
+.loading-line-short { width: 58%; }
+.loading-block { min-height: 160px; }
+@keyframes auth-shimmer { to { background-position: -200% 0; } }

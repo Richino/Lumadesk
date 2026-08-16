@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { createRoot } from "react-dom/client";
+"use client";
+
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createClient } from "@/lib/supabase/client";
 import {
   ArrowUpRight,
   Menu,
@@ -11,15 +14,21 @@ import {
   Plus,
   Star,
   ArrowRight,
-  Play,
   ChevronDown,
 } from "lucide-react";
-import "./styles.css";
 
 const desk = "/images/lumadesk-product-master.png";
 // Canonical LumaDesk product image supplied by the brand. Future finish variants
 // must be direct edits of this locked composition, never a recreated scene.
-const deskSilver = "/images/lumadesk-hero-silver.png";
+const productVariants = {
+  natural: { label: "Natural white oak", swatch: "#d8c8a3", frames: { black: desk, white: "/products/variants/05-natural-white-oak-matte-white.png" } },
+  walnut: { label: "American walnut", swatch: "#704b36", frames: { black: "/products/variants/02-american-walnut-matte-black.png", aluminum: "/products/variants/06-american-walnut-brushed-aluminum.png" } },
+  smoked: { label: "Smoked oak", swatch: "#4b3328", frames: { black: "/products/variants/03-smoked-oak-matte-black.png" } },
+  ash: { label: "Matte black ash", swatch: "#252525", frames: { black: "/products/variants/04-matte-black-ash-matte-black.png" } },
+};
+const frameNames = { black: "Matte black", white: "Matte white", aluminum: "Brushed aluminum" };
+const frameColors = { black: "#111111", white: "#f4f1e9", aluminum: "#b7b8b6" };
+const variantSlugs = { natural: { black: "natural-white-oak-matte-black", white: "natural-white-oak-matte-white" }, walnut: { black: "american-walnut-matte-black", aluminum: "american-walnut-brushed-aluminum" }, smoked: { black: "smoked-oak-matte-black" }, ash: { black: "matte-black-ash-matte-black" } };
 const features = [
   [
     "01",
@@ -55,6 +64,7 @@ const reviews = [
   ],
 ];
 const rise = { hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0 } };
+const MotionImage = motion.create(Image);
 function Reveal({ children, className = "", delay = 0 }) {
   return (
     <motion.div
@@ -74,20 +84,27 @@ function App() {
     [menu, setMenu] = useState(false),
     [qty, setQty] = useState(1),
     [added, setAdded] = useState(false),
+    [finish, setFinish] = useState("natural"),
+    [finishPickerOpen, setFinishPickerOpen] = useState(false),
     [frame, setFrame] = useState("black"),
     [scrolled, setScrolled] = useState(false),
     [email, setEmail] = useState(""),
     [subscribed, setSubscribed] = useState(false),
     [checkout, setCheckout] = useState(false),
     [isLoading, setIsLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const finishPickerRef = useRef(null);
+  const selectedFinish = productVariants[finish];
+  const deskImage = selectedFinish.frames[frame] || selectedFinish.frames.black;
+  const changeFinish = (next) => {
+    setFinish(next);
+    setFrame("black");
+    setFinishPickerOpen(false);
+  };
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  useEffect(() => {
-    const silver = new Image();
-    silver.src = deskSilver;
   }, []);
   const add = () => {
     setAdded(true);
@@ -97,16 +114,24 @@ function App() {
   const changeFrame = (next) => {
     if (next !== frame) setFrame(next);
   };
-  const subscribe = (e) => {
+  const subscribe = async (e) => {
     e.preventDefault();
-    if (email.includes("@")) setSubscribed(true);
+    const response = await fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
+    if (response.ok) setSubscribed(true);
   };
-  const beginCheckout = () => {
+  const beginCheckout = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setCheckout(true);
-    }, 650);
+    const params = new URLSearchParams({ variantSlug: variantSlugs[finish][frame], quantity: String(qty) });
+    window.location.assign(`/checkout?${params.toString()}`);
+  };
+  const saveConfiguration = async () => {
+    const supabase = createClient();
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) { window.location.assign("/login?next=/#shop"); return; }
+    const { data: variant } = await supabase.from("product_variants").select("id").eq("slug", variantSlugs[finish][frame]).single();
+    if (!variant) return;
+    const { error } = await supabase.from("wishlist_items").upsert({ user_id: auth.user.id, variant_id: variant.id }, { onConflict: "user_id,variant_id" });
+    if (!error) setSaved(true);
   };
   const closeMenu = () => setMenu(false);
   return (
@@ -183,21 +208,25 @@ function App() {
               you work with should make you feel more capable.
             </p>
             <div className="hero-actions">
-              <button className="primary" onClick={add}>
-                Shop LumaDesk Pro <ArrowUpRight size={17} />
-              </button>
-              <button className="text-btn">
-                <span>
-                  <Play size={12} fill="currentColor" />
-                </span>{" "}
-                Watch the film
+              <button
+                className="primary hero-cta"
+                onClick={() =>
+                  document
+                    .getElementById("shop")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+              >
+                Configure your LumaDesk <ArrowUpRight size={17} />
               </button>
             </div>
           </div>
           <div className="hero-art">
-            <img
+            <Image
               src={desk}
               alt="LumaDesk Pro oak standing desk in a quiet modern workspace"
+              fill
+              loading="eager"
+              sizes="(max-width: 700px) 100vw, 55vw"
             />
             <div className="hero-note">
               Natural white oak
@@ -237,11 +266,12 @@ function App() {
           ))}
         </section>
         <section className="image-break">
-          <img
-            loading="lazy"
-            decoding="async"
+          <Image
             src={desk}
             alt="Close view of the LumaDesk Pro"
+            width={1200}
+            height={900}
+            sizes="(max-width: 700px) 100vw, 55vw"
           />
           <Reveal>
             <p className="eyebrow">MADE TO MOVE</p>
@@ -284,21 +314,23 @@ function App() {
             ))}
           </div>
         </section>
-        <section className="product">
+        <section className="product" id="shop">
           <div className="product-img">
             <AnimatePresence mode="wait">
-              <motion.img
-                key={frame}
+              <MotionImage
+                key={`${finish}-${frame}`}
                 className="product-photo"
                 initial={{ opacity: 0, scale: 1.015 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                src={frame === "black" ? desk : deskSilver}
-                alt={`LumaDesk Pro in white oak with ${frame} frame`}
+                src={deskImage}
+                alt={`LumaDesk Pro in ${selectedFinish.label} with ${frameNames[frame]} frame`}
+                fill
+                sizes="(max-width: 700px) 100vw, 55vw"
               />
             </AnimatePresence>
-            <span>WHITE OAK / {frame.toUpperCase()}</span>
+            <span>{selectedFinish.label.toUpperCase()} / {frameNames[frame].toUpperCase()}</span>
           </div>
           <Reveal className="product-info">
             <p className="eyebrow">THE FLAGSHIP</p>
@@ -310,10 +342,57 @@ function App() {
             </p>
             <div className="selectors">
               <div>
-                <label>Desktop finish</label>
-                <button className="choice">
-                  <i /> Natural white oak <ChevronDown size={16} />
+                <div className="finish-picker" ref={finishPickerRef} onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setFinishPickerOpen(false);
+              }}>
+                <label id="desktop-finish-label">Desktop finish</label>
+                <button
+                  className="choice"
+                  type="button"
+                  aria-labelledby="desktop-finish-label desktop-finish-value"
+                  aria-haspopup="listbox"
+                  aria-expanded={finishPickerOpen}
+                  onClick={() => setFinishPickerOpen((isOpen) => !isOpen)}
+                  onKeyDown={(event) => {
+                    if (["ArrowDown", "ArrowUp", " "].includes(event.key)) {
+                      event.preventDefault();
+                      setFinishPickerOpen(true);
+                    }
+                  }}
+                >
+                  <i className="choice-swatch" style={{ background: selectedFinish.swatch }} />
+                  <span id="desktop-finish-value">{selectedFinish.label}</span>
+                  <ChevronDown size={16} />
                 </button>
+                <AnimatePresence>
+                  {finishPickerOpen && (
+                    <motion.div
+                      className="finish-menu"
+                      role="listbox"
+                      aria-labelledby="desktop-finish-label"
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      {Object.entries(productVariants).map(([id, option]) => (
+                        <button
+                          type="button"
+                          key={id}
+                          className={finish === id ? "selected" : ""}
+                          role="option"
+                          aria-selected={finish === id}
+                          onClick={() => changeFinish(id)}
+                        >
+                          <i style={{ background: option.swatch }} />
+                          <span>{option.label}</span>
+                          {finish === id && <Check size={14} strokeWidth={2.4} />}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                </div>
               </div>
               <div>
                 <label>Frame</label>
@@ -322,20 +401,7 @@ function App() {
                   role="radiogroup"
                   aria-label="Frame color"
                 >
-                  <button
-                    className={`black ${frame === "black" ? "active" : ""}`}
-                    onClick={() => changeFrame("black")}
-                    aria-label="Black frame"
-                    role="radio"
-                    aria-checked={frame === "black"}
-                  />
-                  <button
-                    className={`silver ${frame === "silver" ? "active" : ""}`}
-                    onClick={() => changeFrame("silver")}
-                    aria-label="Silver frame"
-                    role="radio"
-                    aria-checked={frame === "silver"}
-                  />
+                  {Object.keys(selectedFinish.frames).map((id) => <button key={id} className={`frame-option ${frame === id ? "active" : ""}`} style={{ "--frame-swatch": frameColors[id] }} onClick={() => changeFrame(id)} aria-label={frameNames[id]} role="radio" aria-checked={frame === id} />)}
                 </div>
               </div>
             </div>
@@ -362,6 +428,7 @@ function App() {
             <small>
               <Check size={14} /> Ships free · 30-day home trial
             </small>
+            <button className="text-btn" type="button" onClick={saveConfiguration}>{saved ? "Saved to wishlist" : "Save this configuration"}</button>
           </Reveal>
         </section>
         <section className="quotes" id="stories">
@@ -420,10 +487,10 @@ function App() {
         </a>
         <p>Work, elevated.</p>
         <div>
-          <a>Instagram</a>
-          <a>Contact</a>
-          <a>Shipping & Returns</a>
-          <a>Privacy</a>
+          <a href="/shipping">Shipping</a>
+          <a href="/returns">Returns</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
         </div>
         <small>© 2026 LumaDesk, Inc.</small>
       </footer>
@@ -470,14 +537,16 @@ function App() {
               ) : added ? (
                 <>
                   <div className="cart-item">
-                    <img
-                      loading="lazy"
-                      src={frame === "black" ? desk : deskSilver}
+                    <Image
+                      src={deskImage}
                       alt="LumaDesk Pro"
+                      width={100}
+                      height={100}
+                      sizes="100px"
                     />
                     <div>
                       <b>LumaDesk Pro</b>
-                      <p>Natural white oak / {frame}</p>
+                      <p>{selectedFinish.label} / {frameNames[frame]}</p>
                       <strong>${1895 * qty}</strong>
                       <button
                         className="remove"
@@ -510,10 +579,14 @@ function App() {
                 </>
               ) : (
                 <div className="empty">
-                  <ShoppingBag size={30} />
+                  <span className="empty-kicker">Your selection</span>
+                  <div className="empty-icon" aria-hidden="true">
+                    <ShoppingBag size={24} strokeWidth={1.5} />
+                  </div>
+                  <h3>Nothing here yet.</h3>
                   <p>Your bag is waiting for something exceptional.</p>
                   <button onClick={() => setCart(false)} className="text-btn">
-                    Continue browsing
+                    Continue browsing <span aria-hidden="true"><ArrowRight size={13} /></span>
                   </button>
                 </div>
               )}
@@ -524,4 +597,5 @@ function App() {
     </>
   );
 }
-createRoot(document.getElementById("root")).render(<App />);
+
+export default App;

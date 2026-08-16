@@ -1,0 +1,6 @@
+.danger-card { border-color: #d8b6ae; }
+.danger-button { max-width: 210px; background: #4a1712; color: #fff; padding: 13px 18px; font-size: 12px; font-weight: 700; }
+.loading-block { min-height: 180px; background: linear-gradient(90deg, #eeece7, #f8f7f4, #eeece7); background-size: 200% 100%; animation: account-shimmer 1.3s ease-in-out infinite; }
+.loading-nav { min-height: 230px; }
+.loading-content { min-height: 360px; }
+@keyframes account-shimmer { to { background-position: -200% 0; } }

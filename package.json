@@ -1,9 +1,14 @@
 {
-  "name": "lumadesk",
+  "name": "lumadesk-platform",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "scripts": { "dev": "vite", "build": "vite build && node scripts/ensure-worker.mjs" },
-  "dependencies": { "@vitejs/plugin-react": "latest", "vite": "latest", "react": "latest", "react-dom": "latest", "lucide-react": "latest", "framer-motion": "latest" },
-  "devDependencies": {}
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "npm run dev --workspace=@lumadesk/store",
+    "build": "npm run build --workspace=@lumadesk/store",
+    "start": "npm run start --workspace=@lumadesk/store",
+    "dev:store": "npm run dev --workspace=@lumadesk/store",
+    "build:store": "npm run build --workspace=@lumadesk/store"
+  }
 }

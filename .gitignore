@@ -1,2 +1,11 @@
 node_modules/
 dist/
+.next/
+out/
+.env.local
+.vercel/
+graphify-out/
+.agents/
+.codex-variants-stash/
+lumadesk-site.tar.gz
+supabase/.temp/
