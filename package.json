@@ -9,6 +9,8 @@
     "build": "npm run build --workspace=@lumadesk/store",
     "start": "npm run start --workspace=@lumadesk/store",
     "dev:store": "npm run dev --workspace=@lumadesk/store",
-    "build:store": "npm run build --workspace=@lumadesk/store"
+    "build:store": "npm run build --workspace=@lumadesk/store",
+    "dev:admin": "npm run dev --workspace=@lumadesk/admin",
+    "build:admin": "npm run build --workspace=@lumadesk/admin"
   }
 }
