@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 const desk = "/images/lumadesk-product-master.png";
+const CART_STORAGE_KEY = "lumadesk-cart-v1";
 // Canonical LumaDesk product image supplied by the brand. Future finish variants
 // must be direct edits of this locked composition, never a recreated scene.
 const productVariants = {
@@ -83,16 +84,17 @@ function App() {
   const [cart, setCart] = useState(false),
     [menu, setMenu] = useState(false),
     [qty, setQty] = useState(1),
-    [added, setAdded] = useState(false),
     [finish, setFinish] = useState("natural"),
     [finishPickerOpen, setFinishPickerOpen] = useState(false),
     [frame, setFrame] = useState("black"),
     [scrolled, setScrolled] = useState(false),
     [email, setEmail] = useState(""),
     [subscribed, setSubscribed] = useState(false),
-    [checkout, setCheckout] = useState(false),
     [isLoading, setIsLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [cartItem, setCartItem] = useState(null);
+  const [cartHydrated, setCartHydrated] = useState(false);
+  const [signedIn, setSignedIn] = useState(null);
   const finishPickerRef = useRef(null);
   const selectedFinish = productVariants[finish];
   const deskImage = selectedFinish.frames[frame] || selectedFinish.frames.black;
@@ -106,10 +108,39 @@ function App() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+  useEffect(() => {
+    try {
+      const savedCart = window.localStorage.getItem(CART_STORAGE_KEY);
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        if (productVariants[parsed.finish]?.frames[parsed.frame] && Number.isInteger(parsed.quantity) && parsed.quantity >= 1 && parsed.quantity <= 10) {
+          setCartItem(parsed);
+        }
+      }
+    } catch {
+      window.localStorage.removeItem(CART_STORAGE_KEY);
+    } finally {
+      setCartHydrated(true);
+    }
+  }, []);
+  useEffect(() => {
+    if (!cartHydrated) return;
+    if (cartItem) window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItem));
+    else window.localStorage.removeItem(CART_STORAGE_KEY);
+  }, [cartHydrated, cartItem]);
+  useEffect(() => {
+    const supabase = createClient();
+    const syncUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setSignedIn(Boolean(data.user));
+    };
+    void syncUser();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setSignedIn(Boolean(session?.user)));
+    return () => listener.subscription.unsubscribe();
+  }, []);
   const add = () => {
-    setAdded(true);
+    setCartItem({ finish, frame, quantity: qty });
     setCart(true);
-    setCheckout(false);
   };
   const changeFrame = (next) => {
     if (next !== frame) setFrame(next);
@@ -120,8 +151,9 @@ function App() {
     if (response.ok) setSubscribed(true);
   };
   const beginCheckout = async () => {
+    if (!cartItem) return;
     setIsLoading(true);
-    const params = new URLSearchParams({ variantSlug: variantSlugs[finish][frame], quantity: String(qty) });
+    const params = new URLSearchParams({ variantSlug: variantSlugs[cartItem.finish][cartItem.frame], quantity: String(cartItem.quantity) });
     window.location.assign(`/checkout?${params.toString()}`);
   };
   const saveConfiguration = async () => {
@@ -146,14 +178,17 @@ function App() {
           <a href="#stories">Stories</a>
           <a href="#support">Support</a>
         </nav>
-        <button
-          className="bag"
-          onClick={() => setCart(true)}
-          aria-label="Open cart"
-        >
-          <ShoppingBag size={18} />
-          {added && <i />}
-        </button>
+        <div className="header-actions">
+          {signedIn ? <><a className="account-link" href="/dashboard">Account</a><a className="account-link" href="/orders">Orders</a></> : signedIn === false ? <><a className="account-link" href="/login">Sign in</a><a className="account-link account-link-create" href="/register">Create account</a></> : null}
+          <button
+            className="bag"
+            onClick={() => setCart(true)}
+            aria-label="Open cart"
+          >
+            <ShoppingBag size={18} />
+            {cartItem && <i />}
+          </button>
+        </div>
         <button
           className="menub"
           onClick={() => setMenu(!menu)}
@@ -181,6 +216,8 @@ function App() {
             <a onClick={closeMenu} href="#stories">
               Stories
             </a>
+            {signedIn ? <><a onClick={closeMenu} href="/dashboard">My account</a><a onClick={closeMenu} href="/orders">My orders</a></> : <><a onClick={closeMenu} href="/login">Sign in</a><a onClick={closeMenu} href="/register">Create account</a></>}
+            <button onClick={() => { closeMenu(); setCart(true); }}>Open bag</button>
             <button
               onClick={() => {
                 closeMenu();
@@ -521,25 +558,16 @@ function App() {
               className="cart"
             >
               <div className="cart-head">
-                <h2>{checkout ? "Checkout" : "Your bag"}</h2>
+                <h2>Your bag</h2>
                 <button onClick={() => setCart(false)} aria-label="Close cart">
                   <X />
                 </button>
               </div>
-              {checkout ? (
-                <div className="checkout-success">
-                  <Check size={24} />
-                  <h3>Your desk is reserved.</h3>
-                  <p>We’ll guide you through delivery details next.</p>
-                  <button onClick={() => setCart(false)} className="primary">
-                    Continue
-                  </button>
-                </div>
-              ) : added ? (
+              {cartItem ? (
                 <>
                   <div className="cart-item">
                     <Image
-                      src={deskImage}
+                      src={productVariants[cartItem.finish].frames[cartItem.frame]}
                       alt="LumaDesk Pro"
                       width={100}
                       height={100}
@@ -547,11 +575,11 @@ function App() {
                     />
                     <div>
                       <b>LumaDesk Pro</b>
-                      <p>{selectedFinish.label} / {frameNames[frame]}</p>
-                      <strong>${1895 * qty}</strong>
+                      <p>{productVariants[cartItem.finish].label} / {frameNames[cartItem.frame]}</p>
+                      <strong>${1895 * cartItem.quantity}</strong>
                       <button
                         className="remove"
-                        onClick={() => setAdded(false)}
+                        onClick={() => setCartItem(null)}
                       >
                         Remove
                       </button>
@@ -560,7 +588,7 @@ function App() {
                   <div className="cart-bottom">
                     <div>
                       <span>Subtotal</span>
-                      <b>${1895 * qty}</b>
+                      <b>${1895 * cartItem.quantity}</b>
                     </div>
                     <p>Complimentary delivery included</p>
                     <button

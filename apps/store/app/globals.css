@@ -78,6 +78,18 @@ header nav {
   gap: 30px;
   font-size: 12px;
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.account-link {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.account-link-create {
+  font-weight: 600;
+}
 header nav a,
 footer a,
 .feature a {
@@ -894,7 +906,7 @@ footer div {
     display: none;
   }
   header nav,
-  .bag {
+  .header-actions {
     display: none;
   }
   .menub {
