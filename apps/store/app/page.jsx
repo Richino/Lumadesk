@@ -92,7 +92,6 @@ function App() {
     [email, setEmail] = useState(""),
     [subscribed, setSubscribed] = useState(false),
     [isLoading, setIsLoading] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [cartItem, setCartItem] = useState(null);
   const [cartHydrated, setCartHydrated] = useState(false);
   const [signedIn, setSignedIn] = useState(null);
@@ -173,15 +172,6 @@ function App() {
     setIsLoading(true);
     const params = new URLSearchParams({ variantSlug: variantSlugs[cartItem.finish][cartItem.frame], quantity: String(cartItem.quantity) });
     window.location.assign(`/checkout?${params.toString()}`);
-  };
-  const saveConfiguration = async () => {
-    const supabase = createClient();
-    const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) { window.location.assign("/login?next=/#shop"); return; }
-    const { data: variant } = await supabase.from("product_variants").select("id").eq("slug", variantSlugs[finish][frame]).single();
-    if (!variant) return;
-    const { error } = await supabase.from("wishlist_items").upsert({ user_id: auth.user.id, variant_id: variant.id }, { onConflict: "user_id,variant_id" });
-    if (!error) setSaved(true);
   };
   const closeMenu = () => setMenu(false);
   return (
@@ -494,7 +484,6 @@ function App() {
             <small>
               <Check size={14} /> Ships free · 30-day home trial
             </small>
-            <button className="text-btn" type="button" onClick={saveConfiguration}>{saved ? "Saved to wishlist" : "Save this configuration"}</button>
           </Reveal>
         </section>
         <section className="quotes" id="stories">
