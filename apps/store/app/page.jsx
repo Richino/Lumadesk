@@ -15,6 +15,7 @@ import {
   Star,
   ArrowRight,
   ChevronDown,
+  UserRound,
 } from "lucide-react";
 
 const desk = "/images/lumadesk-product-master.png";
@@ -95,7 +96,9 @@ function App() {
   const [cartItem, setCartItem] = useState(null);
   const [cartHydrated, setCartHydrated] = useState(false);
   const [signedIn, setSignedIn] = useState(null);
+  const [accountMenu, setAccountMenu] = useState(false);
   const finishPickerRef = useRef(null);
+  const accountMenuRef = useRef(null);
   const selectedFinish = productVariants[finish];
   const deskImage = selectedFinish.frames[frame] || selectedFinish.frames.black;
   const changeFinish = (next) => {
@@ -138,6 +141,21 @@ function App() {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setSignedIn(Boolean(session?.user)));
     return () => listener.subscription.unsubscribe();
   }, []);
+  useEffect(() => {
+    if (!accountMenu) return;
+    const dismiss = (event) => {
+      if (!accountMenuRef.current?.contains(event.target)) setAccountMenu(false);
+    };
+    const dismissOnEscape = (event) => {
+      if (event.key === "Escape") setAccountMenu(false);
+    };
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("keydown", dismissOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", dismiss);
+      document.removeEventListener("keydown", dismissOnEscape);
+    };
+  }, [accountMenu]);
   const add = () => {
     setCartItem({ finish, frame, quantity: qty });
     setCart(true);
@@ -179,7 +197,20 @@ function App() {
           <a href="#support">Support</a>
         </nav>
         <div className="header-actions">
-          {signedIn ? <><a className="account-link" href="/dashboard">Account</a><a className="account-link" href="/orders">Orders</a></> : signedIn === false ? <><a className="account-link" href="/login">Sign in</a><a className="account-link account-link-create" href="/register">Create account</a></> : null}
+          {signedIn ? <div className="account-menu" ref={accountMenuRef}>
+            <button className="account-trigger" type="button" onClick={() => setAccountMenu((open) => !open)} aria-label="Open account menu" aria-expanded={accountMenu} aria-controls="account-menu">
+              <UserRound size={17} strokeWidth={1.8} />
+            </button>
+            <AnimatePresence>
+              {accountMenu && <motion.div id="account-menu" className="account-popover" role="menu" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }}>
+                <a href="/orders" role="menuitem">Orders</a>
+                <a href="/wishlist" role="menuitem">Saved desks</a>
+                <a href="/addresses" role="menuitem">Addresses</a>
+                <a href="/settings" role="menuitem">Settings</a>
+                <form action="/auth/signout" method="post"><button type="submit" role="menuitem">Sign out</button></form>
+              </motion.div>}
+            </AnimatePresence>
+          </div> : signedIn === false ? <><a className="account-link" href="/login">Sign in</a><a className="account-link account-link-create" href="/register">Create account</a></> : null}
           <button
             className="bag"
             onClick={() => setCart(true)}
@@ -216,7 +247,7 @@ function App() {
             <a onClick={closeMenu} href="#stories">
               Stories
             </a>
-            {signedIn ? <><a onClick={closeMenu} href="/dashboard">My account</a><a onClick={closeMenu} href="/orders">My orders</a></> : <><a onClick={closeMenu} href="/login">Sign in</a><a onClick={closeMenu} href="/register">Create account</a></>}
+            {signedIn ? <><a onClick={closeMenu} href="/orders">My orders</a><a onClick={closeMenu} href="/wishlist">Saved desks</a></> : <><a onClick={closeMenu} href="/login">Sign in</a><a onClick={closeMenu} href="/register">Create account</a></>}
             <button onClick={() => { closeMenu(); setCart(true); }}>Open bag</button>
             <button
               onClick={() => {

@@ -18,7 +18,7 @@ const schemas = {
 
 type FormValues = Record<string, string | boolean>;
 
-export function AuthForm({ mode, next = "/dashboard" }: { mode: Mode; next?: string }) {
+export function AuthForm({ mode, next = "/" }: { mode: Mode; next?: string }) {
   const schema = schemas[mode] as z.ZodType<FormValues>;
   const form = useForm<FormValues>({ resolver: zodResolver(schema as never), defaultValues: { remember: true } });
   const [notice, setNotice] = useState<string | null>(null);

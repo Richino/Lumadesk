@@ -90,6 +90,52 @@ header nav {
 .account-link-create {
   font-weight: 600;
 }
+.account-menu {
+  position: relative;
+}
+.account-trigger {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #cfcac0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transition: border-color .2s ease, background .2s ease, color .2s ease;
+}
+.account-trigger:hover,
+.account-trigger[aria-expanded="true"] {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+.account-popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 174px;
+  padding: 7px;
+  background: #fff;
+  border: 1px solid #d8d5ce;
+  box-shadow: 0 16px 35px #17140d1a;
+  z-index: 8;
+}
+.account-popover a,
+.account-popover button {
+  width: 100%;
+  display: block;
+  padding: 11px 12px;
+  text-align: left;
+  font-size: 11px;
+}
+.account-popover a:hover,
+.account-popover button:hover {
+  background: #f2f0ea;
+}
+.account-popover form {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid #e4e1db;
+}
 header nav a,
 footer a,
 .feature a {
@@ -905,8 +951,15 @@ footer div {
   .scroll {
     display: none;
   }
-  header nav,
+  header nav {
+    display: none;
+  }
   .header-actions {
+    display: flex;
+    margin-left: auto;
+    margin-right: 18px;
+  }
+  .header-actions > .account-link {
     display: none;
   }
   .menub {

@@ -1,2 +1,2 @@
 import { redirect } from "next/navigation";
-export default function AccountPage() { redirect("/dashboard"); }
+export default function AccountPage() { redirect("/"); }
