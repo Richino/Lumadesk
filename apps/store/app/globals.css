@@ -1135,3 +1135,25 @@ footer div {
     gap: 16px;
   }
 }
+
+/* iOS Safari zooms the page whenever a focused input's font-size is below 16px.
+   On touch devices, render form fields at 16px to suppress that zoom, then scale
+   them back to the 14px design size so nothing actually looks larger. Full-width
+   fields get width + negative-margin compensation so they still fill their row.
+   Desktop (fine pointer) is untouched. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+  textarea,
+  select {
+    font-size: 16px;
+    transform: scale(0.875);
+    transform-origin: left center;
+    width: 114.2857%;
+    margin-right: -14.2857%;
+  }
+  /* The newsletter field is a flex child (flex owns its width), so only the
+     negative margin needs neutralizing to keep the submit button in place. */
+  .newsletter input {
+    margin-right: 0 !important;
+  }
+}
