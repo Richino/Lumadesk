@@ -819,15 +819,36 @@ footer div {
   width: max-content;
 }
 .order-lookup-page {
-  padding-top: 92px;
+  padding-top: 108px;
+  background:
+    radial-gradient(circle at 84% 12%, #e9e6de 0, transparent 29%),
+    #f6f5f1;
+}
+.order-lookup-card {
+  width: min(100%, 540px);
+  padding: clamp(34px, 5vw, 56px);
+  box-shadow: 0 24px 70px #231f1512;
+}
+.order-lookup-card .eyebrow {
+  color: #6f685e;
+}
+.order-lookup-card .auth-form {
+  margin-top: 34px;
+}
+.order-lookup-card .auth-submit {
+  margin-top: 7px;
+  letter-spacing: .02em;
+}
+.order-lookup-card .auth-shopping {
+  margin-top: 25px;
 }
 .order-lookup-card h1 {
   font-size: clamp(36px, 5vw, 50px);
 }
 .order-lookup-result {
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid #dedbd3;
+  margin-top: 32px;
+  padding: 22px 0 0;
+  border-top: 1px solid #d9d5cc;
 }
 .order-lookup-result h2 {
   margin: 10px 0 8px;
