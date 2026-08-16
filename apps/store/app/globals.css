@@ -818,6 +818,32 @@ footer div {
   margin-top: 10px;
   width: max-content;
 }
+.order-lookup-page {
+  padding-top: 92px;
+}
+.order-lookup-card h1 {
+  font-size: clamp(36px, 5vw, 50px);
+}
+.order-lookup-result {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #dedbd3;
+}
+.order-lookup-result h2 {
+  margin: 10px 0 8px;
+  font: 500 17px "DM Mono", monospace;
+  letter-spacing: .04em;
+}
+.order-lookup-result p:not(.eyebrow) {
+  color: #67645e;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.order-lookup-result strong {
+  display: block;
+  margin-top: 17px;
+  font-size: 17px;
+}
 @media (max-width: 700px) {
   header {
     height: 64px;

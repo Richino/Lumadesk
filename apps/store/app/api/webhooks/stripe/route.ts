@@ -39,7 +39,9 @@ async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
   });
   if (error || !orderId) throw new Error("Unable to fulfill checkout order.");
 
-  await sendOrderConfirmation({ to: email, orderId, totalCents: total });
+  const { data: order, error: orderError } = await admin.from("orders").select("confirmation_number").eq("id", orderId).single();
+  if (orderError || !order?.confirmation_number) throw new Error("Unable to load order confirmation.");
+  await sendOrderConfirmation({ to: email, confirmationNumber: order.confirmation_number, totalCents: total });
 }
 
 export async function POST(request: Request) {

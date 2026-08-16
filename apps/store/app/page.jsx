@@ -489,6 +489,7 @@ function App() {
         <div>
           <a href="/shipping">Shipping</a>
           <a href="/returns">Returns</a>
+          <a href="/order-lookup">Order lookup</a>
           <a href="/privacy">Privacy</a>
           <a href="/terms">Terms</a>
         </div>
