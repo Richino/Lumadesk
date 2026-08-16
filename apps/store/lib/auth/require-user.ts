@@ -10,6 +10,7 @@ export type Profile = {
   role: "customer" | "admin";
   marketing_emails: boolean;
   order_updates: boolean;
+  has_password: boolean;
 };
 
 export async function requireUser(): Promise<Profile> {
@@ -20,7 +21,7 @@ export async function requireUser(): Promise<Profile> {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("id, first_name, last_name, email, avatar_url, role, marketing_emails, order_updates")
+    .select("id, first_name, last_name, email, avatar_url, role, marketing_emails, order_updates, has_password")
     .eq("id", claims.claims.sub)
     .single();
 

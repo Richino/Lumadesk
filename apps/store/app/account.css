@@ -163,15 +163,6 @@
   height: 17px;
   stroke-width: 1.6;
 }
-.password-reset-link {
-  width: max-content;
-  color: #111;
-  font-size: 11px;
-  font-weight: 600;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-}
 .portrait-control {
   display: flex;
   flex-wrap: wrap;
