@@ -1,9 +1,9 @@
 import { Resend } from "resend";
 
 export async function sendOrderConfirmation({ to, confirmationNumber, totalCents }: { to: string; confirmationNumber: string; totalCents: number }) {
-  if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) return;
+  if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM || !process.env.NEXT_PUBLIC_APP_URL) return;
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const orderLookupUrl = new URL("/order-lookup", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000");
+  const orderLookupUrl = new URL("/order-lookup", process.env.NEXT_PUBLIC_APP_URL);
   orderLookupUrl.searchParams.set("confirmation", confirmationNumber);
   const { error } = await resend.emails.send({
     from: process.env.EMAIL_FROM,

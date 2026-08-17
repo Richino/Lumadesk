@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type SubmitEvent } from "react";
 import {
   CheckoutElementsProvider,
   BillingAddressElement,
@@ -140,7 +140,7 @@ function CheckoutForm() {
 
   const { checkout } = checkoutResult;
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setIsSubmitting(true);
@@ -166,7 +166,6 @@ function CheckoutForm() {
         setError(confirmation.error.message || "Your payment could not be completed.");
         return;
       }
-
       window.location.assign(`/order-confirmed?session_id=${confirmation.session.id}`);
     } catch (caught) {
       const detail = caught instanceof Error ? caught.message : "";
