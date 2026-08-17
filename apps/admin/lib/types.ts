@@ -134,3 +134,49 @@ export type ActivityLogEntry = {
   metadata: Record<string, unknown>;
   created_at: string;
 };
+
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
+export type Review = {
+  id: string;
+  product_id: string;
+  variant_id: string | null;
+  user_id: string | null;
+  author_name: string;
+  author_email: string | null;
+  rating: number;
+  title: string;
+  body: string;
+  status: ReviewStatus;
+  verified_purchase: boolean;
+  featured: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CouponType = "percent" | "fixed";
+
+export type Coupon = {
+  id: string;
+  code: string;
+  description: string;
+  type: CouponType;
+  value: number;
+  min_purchase_cents: number;
+  usage_limit: number | null;
+  used_count: number;
+  starts_at: string | null;
+  expires_at: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CouponRedemption = {
+  id: string;
+  coupon_id: string;
+  order_id: string | null;
+  user_id: string | null;
+  amount_cents: number;
+  created_at: string;
+};

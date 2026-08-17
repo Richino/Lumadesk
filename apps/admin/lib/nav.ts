@@ -41,17 +41,17 @@ export const NAV_SECTIONS: NavSection[] = [
       { title: "Products", href: "/products", icon: Package },
       { title: "Inventory", href: "/inventory", icon: Boxes },
       { title: "Customers", href: "/customers", icon: Users },
-      { title: "Reviews", href: "/reviews", icon: Star, soon: true },
-      { title: "Coupons", href: "/coupons", icon: Ticket, soon: true },
+      { title: "Reviews", href: "/reviews", icon: Star },
+      { title: "Coupons", href: "/coupons", icon: Ticket },
     ],
   },
   {
     label: "Insights",
     items: [
-      { title: "Analytics", href: "/analytics", icon: BarChart3, soon: true },
+      { title: "Analytics", href: "/analytics", icon: BarChart3 },
       { title: "Media", href: "/media", icon: ImageIcon, soon: true },
       { title: "Notifications", href: "/notifications", icon: Bell, soon: true },
-      { title: "Activity Log", href: "/activity", icon: ScrollText, soon: true },
+      { title: "Activity Log", href: "/activity", icon: ScrollText },
     ],
   },
   {
