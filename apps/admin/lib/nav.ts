@@ -49,17 +49,17 @@ export const NAV_SECTIONS: NavSection[] = [
     label: "Insights",
     items: [
       { title: "Analytics", href: "/analytics", icon: BarChart3 },
-      { title: "Media", href: "/media", icon: ImageIcon, soon: true },
-      { title: "Notifications", href: "/notifications", icon: Bell, soon: true },
+      { title: "Media", href: "/media", icon: ImageIcon },
+      { title: "Notifications", href: "/notifications", icon: Bell },
       { title: "Activity Log", href: "/activity", icon: ScrollText },
     ],
   },
   {
     label: "Administration",
     items: [
-      { title: "Store Settings", href: "/settings", icon: Settings, soon: true },
-      { title: "Users & Roles", href: "/users", icon: UserCog, soon: true },
-      { title: "Security", href: "/security", icon: ShieldCheck, soon: true },
+      { title: "Store Settings", href: "/settings", icon: Settings },
+      { title: "Users & Roles", href: "/users", icon: UserCog },
+      { title: "Security", href: "/security", icon: ShieldCheck },
     ],
   },
 ];

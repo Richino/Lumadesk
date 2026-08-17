@@ -26,9 +26,11 @@ function Brand() {
 
 export function AppShell({
   profile,
+  notificationCount = 0,
   children,
 }: {
   profile: AdminProfile;
+  notificationCount?: number;
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -101,6 +103,7 @@ export function AppShell({
       <div className="lg:pl-60">
         <Topbar
           profile={profile}
+          notificationCount={notificationCount}
           onMenuClick={() => setMobileOpen(true)}
           onSearchClick={() => setCommandOpen(true)}
         />

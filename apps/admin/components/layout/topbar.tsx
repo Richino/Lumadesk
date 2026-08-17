@@ -1,24 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { Menu, Search, Bell } from "lucide-react";
 import type { AdminProfile } from "@/lib/auth/require-admin";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { UserMenu } from "@/components/layout/user-menu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export function Topbar({
   profile,
+  notificationCount,
   onMenuClick,
   onSearchClick,
 }: {
   profile: AdminProfile;
+  notificationCount: number;
   onMenuClick: () => void;
   onSearchClick: () => void;
 }) {
@@ -52,7 +48,7 @@ export function Topbar({
           </kbd>
         </button>
 
-        <NotificationsBell />
+        <NotificationsBell count={notificationCount} />
 
         <div className="hidden sm:block">
           <UserMenu profile={profile} compact />
@@ -62,25 +58,17 @@ export function Topbar({
   );
 }
 
-function NotificationsBell() {
+function NotificationsBell({ count }: { count: number }) {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon-sm" aria-label="Notifications" className="relative">
-          <Bell className="h-4.5 w-4.5" />
-          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary ring-2 ring-background" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel className="flex items-center justify-between">
-          <span className="text-sm font-medium text-foreground">Notifications</span>
-          <span className="text-xs font-normal text-muted-foreground">Live feed coming soon</span>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <div className="px-2 py-6 text-center text-sm text-muted-foreground">
-          You&apos;re all caught up. New orders, low-stock, and refund alerts will appear here.
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button asChild variant="ghost" size="icon-sm" className="relative" aria-label={`Notifications${count > 0 ? ` (${count})` : ""}`}>
+      <Link href="/notifications">
+        <Bell className="h-4.5 w-4.5" />
+        {count > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground ring-2 ring-background">
+            {count > 99 ? "99+" : count}
+          </span>
+        )}
+      </Link>
+    </Button>
   );
 }

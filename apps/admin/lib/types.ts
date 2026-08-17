@@ -180,3 +180,27 @@ export type CouponRedemption = {
   amount_cents: number;
   created_at: string;
 };
+
+export type BusinessAddress = {
+  line1?: string;
+  line2?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
+};
+
+export type StoreSettings = {
+  id: boolean;
+  store_name: string;
+  support_email: string;
+  phone: string;
+  business_address: BusinessAddress;
+  currency: string;
+  flat_shipping_cents: number;
+  free_shipping_threshold_cents: number | null;
+  tax_rate_bps: number;
+  order_confirmation_template: string;
+  shipping_notification_template: string;
+  updated_at: string;
+};
